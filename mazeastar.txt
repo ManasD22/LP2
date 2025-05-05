@@ -1,0 +1,93 @@
+import heapq 
+# heapq is a module in Python that allows you to maintain a priority queue (where the smallest element is always easily accessible)
+
+def astar(maze, start, end):
+    rows, cols = len(maze), len(maze[0])  # Get the number of rows and columns of the maze
+    open_list = []  # Create a priority queue to store nodes to explore
+    heapq.heappush(open_list, (0, start))  # Push the start node into the queue with f_score of 0 (start node)
+    # The heap stores the start node with a priority (f_score) of 0 because it’s the first node to explore
+    came_from = {}  # Dictionary to track the path (came_from tracks the previous node in the path)
+    g_score = {start: 0}  # Dictionary to store the cost of reaching each node (g_score)
+
+    # Begin exploring nodes in the open list (priority queue)
+    while open_list:
+        _, current = heapq.heappop(open_list)  # Pop the node with the smallest f_score (current node)
+        # _ is a placeholder for values we don’t need; we only care about the current position (node) to explore next
+        if current == end:  # If we have reached the end node, backtrack to reconstruct the path
+            path = []  # Initialize an empty list to store the path
+            while current in came_from:  # Backtrack from end node to start node
+                path.append(current)  # Add the current node to the path
+                current = came_from[current]  # Move to the previous node in the path
+            return path[::-1]  # Reverse the path list to get the correct order (start to goal)
+
+        # Explore neighboring nodes (adjacent cells) in 4 directions (up, down, left, right)
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            neighbor = (current[0] + dx, current[1] + dy)  # Calculate the neighbor's position
+            # Check if the neighbor is within the maze bounds and is not a wall (maze value is not 1)
+            if 0 <= neighbor[0] < rows and 0 <= neighbor[1] < cols and maze[neighbor[0]][neighbor[1]] != 1:
+                temp_g = g_score[current] + 1  # Calculate the g_score for the neighbor (cost from start)
+                # If the neighbor hasn't been visited or we found a cheaper path to it
+                if neighbor not in g_score or temp_g < g_score[neighbor]:
+                    g_score[neighbor] = temp_g  # Update the g_score for the neighbor
+                    # Calculate the f_score (g_score + h_score, where h_score is the heuristic, Manhattan distance)
+                    f_score = temp_g + abs(neighbor[0] - end[0]) + abs(neighbor[1] - end[1])
+                    heapq.heappush(open_list, (f_score, neighbor))  # Push the neighbor into the priority queue
+                    came_from[neighbor] = current  # Mark the current node as the predecessor of the neighbor
+    return None  # If no path is found, return None
+
+def print_maze(maze, path):
+    # Function to print the maze and the path
+    for r in range(len(maze)):
+        for c in range(len(maze[0])):
+            if (r, c) in path:  # If the current position is part of the path, print '.'
+                print('.', end=' ')
+            elif maze[r][c] == 1:  # If it's a wall, print 'X'
+                print('X', end=' ')
+            else:  # Otherwise, print '-' for empty cells
+                print('-', end=' ')
+        print()  # Print a new line after each row of the maze
+
+# --- TAKE INPUT FROM USER ---
+rows = int(input("Enter number of rows: "))  # Input for number of rows in the maze
+cols = int(input("Enter number of columns: "))  # Input for number of columns in the maze
+
+print("Enter the maze row by row (0 = empty, 1 = wall):")  # Prompt to enter maze data
+maze = []  # Initialize an empty list to store the maze
+for i in range(rows):  # Loop to take input for each row of the maze
+    row = list(map(int, input(f"Row {i+1}: ").split()))  # Input for each row (0 or 1 for each cell)
+    maze.append(row)  # Add the row to the maze
+
+# Take the start and end coordinates as input from the user
+start_x = int(input("Enter start X (row index): "))  # Input for start row index
+start_y = int(input("Enter start Y (col index): "))  # Input for start column index
+end_x = int(input("Enter end X (row index): "))  # Input for end row index
+end_y = int(input("Enter end Y (col index): "))  # Input for end column index
+
+start = (start_x, start_y)  # Store the start point as a tuple (x, y)
+end = (end_x, end_y)  # Store the end point as a tuple (x, y)
+
+# --- CALL ASTAR ---
+path = astar(maze, start, end)  # Call the astar function to find the path from start to end
+
+# Print the result
+if path:  # If a path is found
+    print_maze(maze, path)  # Print the maze with the path
+    print("Path found!")  # Indicate that a path has been found
+else:  # If no path is found
+    print("No path found.")  # Indicate that no path exists
+
+#input
+#Enter number of rows: 5
+#Enter number of columns: 5
+#Enter the maze row by row (0 = empty, 1 = wall):
+#Row 1: 0 1 0 0 0
+#Row 2: 0 1 0 1 0
+#Row 3: 0 1 0 0 0
+#Row 4: 0 0 0 1 0
+#Row 5: 0 1 0 0 0
+#Enter start X (row index): 0
+#Enter start Y (col index): 0
+#Enter end X (row index): 4
+#Enter end Y (col index): 4
+
+

@@ -1,0 +1,28 @@
+from collections import deque
+
+def bfs_recursive(queue, visited, graph):
+    if not queue:
+        return
+    node = queue.popleft()
+    if node not in visited:
+        print(node, end=' ')
+        visited.add(node)
+        for neighbor in graph[node]:
+            if neighbor not in visited:
+                queue.append(neighbor)
+    bfs_recursive(queue, visited, graph)
+
+# Input graph
+graph = {}
+num_edges = int(input("Enter number of edges: "))
+for _ in range(num_edges):
+    u, v = map(int, input("Enter edge (u v): ").split())
+    graph.setdefault(u, []).append(v)
+    graph.setdefault(v, []).append(u)  # undirected
+
+start = int(input("Enter starting node: "))
+visited = set()
+queue = deque([start])
+
+print("BFS Traversal:", end=' ')
+bfs_recursive(queue, visited, graph)

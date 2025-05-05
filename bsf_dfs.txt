@@ -1,0 +1,38 @@
+from collections import deque
+
+def bfs(start, graph):
+    visited = set()
+    queue = deque([start])
+    print("BFS Traversal:", end=' ')
+    while queue:
+        node = queue.popleft()
+        if node not in visited:
+            print(node, end=' ')
+            visited.add(node)
+            for neighbor in graph[node]:
+                if neighbor not in visited:
+                    queue.append(neighbor)
+    print()
+
+def dfs(node, visited, graph):
+    if node not in visited:
+        print(node, end=' ')
+        visited.add(node)
+        for neighbor in graph[node]:
+            dfs(neighbor, visited, graph)
+
+# -------- Input Graph --------
+graph = {}
+num_edges = int(input("Enter number of edges: "))
+for _ in range(num_edges):
+    u, v = map(int, input("Enter edge (u v): ").split())
+    graph.setdefault(u, []).append(v)
+    graph.setdefault(v, []).append(u)  # undirected
+
+start = int(input("Enter starting node: "))
+
+# -------- Traversals --------
+bfs(start, graph)
+print("DFS Traversal:", end=' ')
+visited = set()
+dfs(start, visited, graph)

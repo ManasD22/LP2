@@ -1,0 +1,61 @@
+import re
+
+def tata_play_chatbot(user_input):
+    user_input = user_input.lower().strip()
+
+    responses = {
+        r"\b(hi|hello|hey)\b": (
+            "Hello! Welcome to Tata Play WhatsApp Assistant.\n"
+            "I can help you with:\n"
+            "1. Check balance\n"
+            "2. Recharge account\n"
+            "3. Add/remove channels\n"
+            "4. Troubleshooting help\n"
+            "5. Talk to customer care\n"
+            "Type your query or choose a number."
+        ),
+        r"\b(1|balance|check balance)\b": (
+            " To check your balance:\n"
+            " Please visit: https://www.tataplay.com/myaccount\n"
+        ),
+        r"\b(2|recharge|pay)\b": (
+            " To recharge your Tata Play account:\n"
+            "• Visit: https://www.tataplay.com/recharge\n"
+        ),
+        r"\b(3|add channel|remove channel|change pack)\b": (
+            " Channel Pack Management:\n"
+            "• You can manage your packs at https://www.tataplay.com/dth-pack-selection\n"
+        ),
+        r"\b(4|troubleshoot|issue|problem)\b": (
+            "🛠 Troubleshooting Help:\n"
+            "• For 'No Signal', please check your dish alignment and cable connection.\n"
+            "• For 'Error Code 4', try restarting your set-top box.\n"
+            "• For 'Subscription Error', you may need to recharge.\n"
+            "If problems persists please contact the customer care"
+        ),
+        r"\b(5|customer care|talk|representative)\b": (
+            " You can talk to a representative:\n"
+            "• Call 1800-208-6633 (toll-free)\n"
+            "• Or request a callback by replying: 'Request Callback'\n"
+            "• Available from 7 AM to 11 PM\n"
+            "Would you like to request a callback now?"
+            "If yes we give a call to tollfree number"
+        ),
+        r"\b(bye|exit|thank you)\b": "Thank you for using Tata Play Assistant. Have a great day! "
+    }
+
+    for pattern, response in responses.items():
+        if re.search(pattern, user_input):
+            return response
+
+    return "I'm sorry, I didn't understand that. Please choose an option (1–5) or ask a related question."
+
+# Chat loop
+print("Welcome to Tata Play WhatsApp Assistant. Type 'exit' to end the chat.")
+
+while True:
+    user_message = input("You: ")
+    if user_message.lower() in ["bye", "exit", "ok"]:
+        print("Chatbot:Thank you for using Tata Play Assistant. Have a great day!")
+        break
+    print("Chatbot:", tata_play_chatbot(user_message))
