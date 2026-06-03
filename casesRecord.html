@@ -1,0 +1,169 @@
+<template>
+    <div class="dashboard-wrapper">
+ 
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="header-left">
+                <p class="header-tag">HealthConnect Outreach Platform</p>
+                <h1 class="header-title">Case Overview Dashboard</h1>
+                <p class="header-sub">Welcome back, <strong>{doctorName}</strong></p>
+            </div>
+            <div class="header-right">
+                <div class="header-badge">LIVE</div>
+            </div>
+        </div>
+ 
+        <!-- Loading -->
+        <template if:true={isLoading}>
+            <div class="loading-box">
+                <div class="pulse-dot"></div>
+                <p class="loading-text">Fetching case data...</p>
+            </div>
+        </template>
+ 
+        <!-- Error -->
+        <template if:true={hasError}>
+            <div class="error-box">
+                ⚠️ Failed to load data. Please refresh.
+            </div>
+        </template>
+ 
+        <!-- Main Content -->
+        <template if:false={isLoading}>
+            <template if:false={hasError}>
+ 
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+ 
+                    <!-- My Active Cases -->
+                    <div class="stat-card my-cases">
+                        <div class="stat-icon-wrap green">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                fill="white" width="28" height="28">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10
+                                10 10 10-4.48 10-10S17.52 2 12 2zm-1
+                                14H9V8h2v8zm4 0h-2V8h2v8z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <p class="stat-label">My Active Cases</p>
+                            <p class="stat-value green-text">{myActiveCases}</p>
+                            <p class="stat-sublabel">Assigned to you</p>
+                        </div>
+                        <div class="stat-corner-badge green-badge">Doctor View</div>
+                    </div>
+ 
+                    <!-- All Open Cases -->
+                    <div class="stat-card open-cases">
+                        <div class="stat-icon-wrap teal">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                fill="white" width="28" height="28">
+                                <path d="M20 4H4c-1.1 0-2
+                                .9-2 2v12c0 1.1.9 2 2
+                                2h16c1.1 0 2-.9
+                                2-2V6c0-1.1-.9-2-2-2zm0
+                                14H4V8h16v10z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <p class="stat-label">All Open Cases</p>
+                            <p class="stat-value teal-text">{totalOpenCases}</p>
+                            <p class="stat-sublabel">Across organisation</p>
+                        </div>
+                        <div class="stat-corner-badge teal-badge">Org Wide</div>
+                    </div>
+ 
+                    <!-- Resolved Cases -->
+                    <div class="stat-card resolved-cases">
+                        <div class="stat-icon-wrap blue">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                fill="white" width="28" height="28">
+                                <path d="M9 16.17L4.83 12l-1.42
+                                1.41L9 19 21 7l-1.41-1.41z"/>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <p class="stat-label">Total Resolved</p>
+                            <p class="stat-value blue-text">{totalResolvedCases}</p>
+                            <p class="stat-sublabel">Successfully closed</p>
+                        </div>
+                        <div class="stat-corner-badge blue-badge">Resolved</div>
+                    </div>
+ 
+                </div>
+ 
+                <!-- Doctor Summary Section -->
+                <div class="summary-section">
+                    <div class="summary-header">
+                        <div class="summary-title-row">
+                            <div class="green-dot"></div>
+                            <h2 class="summary-title">Your Case Summary</h2>
+                        </div>
+                        <p class="summary-desc">
+                            Statistics for Dr. {doctorName}
+                        </p>
+                    </div>
+ 
+                    <div class="summary-body">
+ 
+                        <!-- Progress Section -->
+                        <div class="progress-section">
+ 
+                            <!-- My Active Cases Bar -->
+                            <div class="progress-row">
+                                <span class="progress-label">Active Cases</span>
+                                <span class="progress-value">{myActiveCases}</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill green-fill"
+                                    style={myActiveCasesBarStyle}
+                                ></div>
+                            </div>
+ 
+                            <!-- Org Open Cases Bar -->
+                            <div class="progress-row" style="margin-top:16px">
+                                <span class="progress-label">Org Open Cases</span>
+                                <span class="progress-value">{totalOpenCases}</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill teal-fill"
+                                    style={openCasesBarStyle}
+                                ></div>
+                            </div>
+ 
+                            <!-- Resolved Cases Bar -->
+                            <div class="progress-row" style="margin-top:16px">
+                                <span class="progress-label">Resolved Cases</span>
+                                <span class="progress-value">{myResolvedCases}</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill blue-fill"
+                                    style={resolvedCasesBarStyle}
+                                ></div>
+                            </div>
+ 
+                        </div>
+ 
+                        <!-- Resolution Rate Box -->
+                        <div class="rate-box">
+                            <p class="rate-label">Resolution Rate</p>
+                            <p class="rate-value">{resolutionRate}%</p>
+                            <p class="rate-sub">
+                                {myResolvedCases} resolved out of
+                                {totalCases} total cases
+                            </p>
+                            <div class="rate-track">
+                                <div class="rate-fill"
+                                    style={resolutionBarStyle}
+                                ></div>
+                            </div>
+                        </div>
+ 
+                    </div>
+                </div>
+ 
+            </template>
+        </template>
+ 
+    </div>
+</template>
