@@ -1,0 +1,774 @@
+1. get soql query for the all accounts and its child contacts.
+SELECT Id, Name, Industry, Phone, (SELECT Id, FirstName, LastName, Email, Phone FROM Contacts) FROM Account
+
+
+2. Fetch account and contacts only if account has any contact
+ SELECT Account.Name, Account.Industry, Account.Phone, Name, Id FROM Contact WHERE AccountId != NULL
+
+
+3. Fetch account with only cases
+SELECT Id, Name, Industry, Phone, (SELECT Id, CaseNumber, Subject, Status, Priority FROM Cases) FROM Account
+
+
+4. Fetch Account that belongs to the industry Energy, Apparel, Technology and its child opportunities
+SELECT Id, Name, Industry, (SELECT Id, Name, StageName, Amount, CloseDate FROM Opportunities) FROM Account WHERE Industry IN ('Energy', 'Apparel', 'Technology')
+
+5. Fetch Account and its cases that are in working status
+SELECT Id, Name, Industry, (SELECT Id, CaseNumber, Subject, Status, Priority FROM Cases WHERE Status = 'Working') FROM Account
+
+6. Query to fetch opportunities (name, stagename, amount, closedate) with their parent account details(name, industry)
+SELECT Id, Name, StageName, Amount, CloseDate, Account.Name, Account.Industry FROM Opportunity
+
+
+7. Fetch closed opportunities and its parent accounts details
+SELECT Id, Name, StageName, Amount, CloseDate, Account.Name, Account.Industry FROM Opportunity WHERE StageName = 'Closed Won'
+
+
+8. Fetch open cases and its parent account details only if the accounts rating is high.
+SELECT Id, CaseNumber, Subject, Status, Account.Name, Account.Industry, Account.Rating FROM Case WHERE Status = 'Open' AND Account.Rating = 'Hot'
+
+
+9. Fetch contacts(phone, email, lastname) only if they have valid email and its parent accounts if they belong to industry energy.
+SELECT Id, Phone, Email, LastName, Account.Name, Account.Industry FROM Contact WHERE Email != null AND Account.Industry = 'Energy'
+
+
+10. Fetch opportunities belonging to stages prospecting, Negotiation, closed won, and amount > 5000, and their parent account details(Name, Phone) only if they have valid number.
+SELECT Id, Name, StageName, Amount, CloseDate, Account.Name, Account.Phone FROM Opportunity WHERE StageName IN ('Prospecting', 'Negotiation', 'Closed Won') AND Amount > 5000 AND Account.Phone != null
+
+Aggregate Query
+
+11. Count the number of contacts per account
+SELECT Account.Name COUNT(AccountId) FROM CONTACT GROUP BY Account.Name
+
+12. count the number of closed cases per account
+SELECT Account.Name, COUNT(Id) FROM Case Where Status = 'Closed' GROUP BY Account.Name
+
+
+13. Count the number of contacts per account belonging to industry Energy, Apparel, Technology, Communication
+Select Account.Name, COUNT(Id) FROM Contact WHERE Account.Industry IN ('Energy', 'Apparel', 'Technology', 'Communication') GROUP BY Account.Name
+
+
+14. Calculate the total opportunity amount per account
+SELECT AccountId, Account.Name, SUM(Amount) FROM Opportunity GROUP BY AccountId, Account.Name
+
+
+15. Calculate the average opportunities by their stageName
+SELECT StageName, AVG(Amount) FROM Opportunity GROUP BY StageName
+
+
+16. Fetch Maximum closedate of opportunities per account
+SELECT AccountId, Account.Name, MAX(CloseDate) FROM Opportunity GROUP BY AccountId, Account.Name
+
+
+17. Fetch the recently created date of contacts per account
+SELECT AccountId, Account.Name, MAX(CreatedDate) FROM Contact GROUP BY AccountId, Account.Name
+
+
+18. Fetch least value (amount) of opportunities per account
+SELECT AccountId, Account.Name, MIN(Amount) FROM Opportunity GROUP BY AccountId, Account.Name
+
+
+19. fetch maximum value opportunities per account
+SELECT AccountId, Account.Name, MAX(Amount) FROM Opportunity GROUP BY AccountId, Account.Name
+
+
+20. Fetch accounts grouped by Industry having more than 5 contacts.
+SELECT Account.Industry, COUNT(Id) FROM Contact GROUP BY Account.Industry HAVING COUNT(Id) > 5
+
+
+21. Fetch Opportunities  ordered by closedate descending 
+SELECT Id, Name, StageName, Amount, CloseDate FROM Opportunity ORDER BY CloseDate DESC
+
+
+22. Fetch recently created 5 opportunities
+SELECT Id, Name, StageName, Amount, CloseDate FROM Opportunity ORDER BY CreatedDate DESC LIMIT 5
+
+
+23. Fetch top 5 opportunities in terms of value (amount)
+SELECT Id, Name, StageName, Amount, CloseDate FROM Opportunity ORDER BY Amount DESC LIMIT 5
+
+
+24. fetch the count of opportunities per account only if there are more than 3 opportunities
+SELECT AccountId, Account.Name, COUNT(Id) FROM Opportunity GROUP BY AccountId, Account.Name HAVING COUNT(Id) > 3
+
+
+25. fetch account with more than 5 open cases
+SELECT AccountId, Account.Name, COUNT(Id) FROM Case WHERE Status = 'Open' GROUP BY AccountId, Account.Name HAVING COUNT(Id) > 5
+
+
+26. fetch account with more than 2 contacts
+SELECT AccountId, Account.Name, COUNT(Id) FROM Contact GROUP BY AccountId, Account.Name HAVING COUNT(Id) > 2
+
+
+27. fetch 10 opportunities that were modified recently
+SELECT Id, Name, StageName, Amount, CloseDate FROM Opportunity ORDER BY LastModifiedDate DESC LIMIT 10
+
+
+28. fetch an account that has highest value of opportunity among all.(Just one account)
+SELECT AccountId, Account.Name, MAX(Amount) FROM Opportunity GROUP BY AccountId, Account.Name ORDER BY MAX(Amount) DESC LIMIT 1
+
+
+29. fetch an account that has more number of cases
+SELECT AccountId, Account.Name, COUNT(Id) FROM Case GROUP BY AccountId, Account.Name ORDER BY COUNT(Id) DESC LIMIT 1
+
+
+31. fetch contacts created in the last month
+SELECT Id, FirstName, LastName, Email FROM Contact WHERE CreatedDate = LAST_MONTH
+
+
+32. Fetch Opportunities where closedate is within the next 30 days
+SELECT Id, Name, StageName, Amount, CloseDate FROM Opportunity WHERE CloseDate = NEXT_N_DAYS:30
+
+
+33. fetch cases created today
+SELECT Id, CaseNumber, Subject, Status FROM Case WHERE CreatedDate = TODAY
+
+
+34. fetch Opportunities where closedate is in the previous quarter
+SELECT Id, Name, StageName, Amount, CloseDate FROM Opportunity WHERE CloseDate = LAST_QUARTER
+
+
+35. fetch accounts created in the last 90 days.
+SELECT Id, Name, Industry, Phone FROM Account WHERE CreatedDate = LAST_N_DAYS:90
+
+
+36. fetch contacts created during the current week
+SELECT Id, FirstName, LastName, Email FROM Contact WHERE CreatedDate = THIS_WEEK
+
+
+
+1. Fetch account and its contacts and store into a list.
+List<Account> accList = [SELECT Name, Id, Industry, (Select Id, LastName, Phone FROM Contacts) FROM Account];
+
+  a. Get all the account names into a list
+  b. Get all the account ids into another variable
+  c. get all Account phone values into a variable
+  d. Sum all the annual revenues
+  e. get all the contacts of first account in to a list - conList1
+  f. get the contacts of the accounts into a list - conList2
+  g. get all the contact phone values into a list - contactPhones
+  h. add the accphones with contactPhones without duplicated the phone number
+  i. create a map of account id as key and account record as value.
+  j. create a map of account name as key and account record as value
+  k. create a map of account name as key and total contacts of each account as value
+  l. create a map of account id as key and total contacts as value.
+  
+  
+  List<String> nameList = new List<String>();
+  Set<Id> idSet = new Set<Id>();
+  List<String> accPhones = new List<String>();
+  Decimal totalRevenue = 0;
+  List<Contact> conList1 = accList[0].Contacts;
+  List<Contact> conList2 = new List<Contact>();
+  Map<Id, Account> accIdMap = new Map<Id, Account>();
+  Map<String, Account> accNameMap = new Map<String, Account>();
+  Map<String, Integer> accNameContactCountMap = new Map<String, Integer>();
+  Map<Id, Integer> accIdContactCountMap = new Map<Id, Integer>();
+  List<String> contactPhones = new List<String>();
+
+  
+
+  for(Account a: accList){
+    nameList.add(a.Name);
+    idSet.add(a.Id);
+    if(a.Phone != null) accPhones.add(a.Phone);
+    totalRevenue += a.AnnualRevenue != null ? a.AnnualRevenue : 0;
+    accIdMap.put(a.Id, a);
+    accNameMap.put(a.Name, a);
+    accNameContactCountMap.put(a.Name, a.Contacts.size());
+    accIdContactCountMap.put(a.Id, a.Contacts.size());
+    
+    for(Contact c : a.Contacts){
+      conList2.add(c);
+      if(c.Phone != null) contactPhones.add(c.Phone);
+    }
+  }
+
+  Set<String> phoneSet = new Set<String>();
+  phoneSet.addAll(accPhones);
+  phoneSet.addAll(contactPhones);
+  List<String> allPhones = new List<String>(phoneSet);
+
+
+
+
+2. Fetch account (Name, Phone, Industry, Annual revenue) and its opportunities (Name, stagename, amount, closedate) and store into a list - accList 
+from accList
+
+List<Account> accList = [SELECT Id, Name, Phone, Industry, AnnualRevenue, Owner.Name, (SELECT Id, Name, StageName, Amount, CloseDate FROM Opportunities) FROM Account];
+
+  i. create a map of account name as key and total opportunity amount as value
+
+  Map<String, Decimal> accNameTotalAmountMap = new Map<String, Decimal>();
+
+  for (Account a : accList) {
+      Decimal totalAmount = 0;
+      if (a.Opportunities != null) {
+          for (Opportunity o : a.Opportunities) {
+              if (o.Amount != null) {
+                  totalAmount += o.Amount;
+              }
+          }
+      }
+      accNameTotalAmountMap.put(a.Name, totalAmount);
+  }
+
+  System.debug('Account Name - Total Opportunity Amount ' + accNameTotalAmountMap);
+
+  ii. map of account name as key and total opportunities count as value
+  
+  Map<String, Integer> accNameTotalOppCountMap = new Map<String, Integer>();
+
+  for (Account a : accList) {
+      Integer totalCount = a.Opportunities != null ? a.Opportunities.size() : 0;
+      accNameTotalOppCountMap.put(a.Name, totalCount);
+  }
+
+  System.debug('Account Name - Total Opportunities Count ' + accNameTotalOppCountMap);
+
+  iii. map of account name as key and total closed opportunities as value
+
+  Map<String, Integer> accNameClosedOppMap = new Map<String, Integer>();
+
+  for (Account a : accList) {
+      Integer closedCount = 0;
+      if (a.Opportunities != null) {
+          for (Opportunity o : a.Opportunities) {
+              if (o.StageName == 'Closed Won') {
+                  closedCount++;
+              }
+          }
+      }
+      accNameClosedOppMap.put(a.Name, closedCount);
+  }
+
+  System.debug('Account Name - Total Closed Opportunities ' + accNameClosedOppMap);  
+
+  iv. map of account id as key and the list of opportunities(the records) as value.
+
+  Map<Id, List<Opportunity>> accIdOppListMap = new Map<Id, List<Opportunity>>();
+
+  for (Account a : accList) {
+      List<Opportunity> oppList = a.Opportunities != null ? a.Opportunities : new List<Opportunity>();
+      accIdOppListMap.put(a.Id, oppList);
+  }
+
+  System.debug('Account Id - Opportunities List ' + accIdOppListMap);
+
+  v. map of account owner name as key and percentage of opportunities closed won as value (% of closed won opp/total opps)
+   
+  Map<String, Decimal> ownerClosedWonPercentMap = new Map<String, Decimal>();
+
+  for (Account a : accList) {
+      if (a.Opportunities != null && a.Opportunities.size() > 0) {
+          Integer totalOpps   = a.Opportunities.size();
+          Integer closedWon   = 0;
+ 
+          for (Opportunity o : a.Opportunities) {
+              if (o.StageName == 'Closed Won') {
+                  closedWon++;
+              }
+          }
+
+          Decimal percentage = ((Decimal) closedWon / totalOpps) * 100;
+          ownerClosedWonPercentMap.put(a.Owner.Name, percentage.setScale(2));
+      } else {
+          ownerClosedWonPercentMap.put(a.Owner.Name, 0);
+      }
+  }
+
+  System.debug('Owner Name -> Closed Won %: ' + ownerClosedWonPercentMap);
+
+
+
+
+3. Create a map of account id as key and total contact records as value - accList01
+Create a map of account id as key and total closed won opportunities as value - accList02
+compare the map accList01 with accList02, then store the matching account ids into a another set.
+
+List<Account> accList01Query = [SELECT Id, Name, (SELECT Id FROM Contacts) FROM Account];
+Map<Id, Integer> accList01 = new Map<Id, Integer>();
+
+for (Account a : accList01Query) {
+    accList01.put(a.Id, a.Contacts != null ? a.Contacts.size() : 0);
+}
+
+List<Account> accList02Query = [SELECT Id, Name, (SELECT Id, StageName FROM Opportunities WHERE StageName = 'Closed Won') FROM Account];
+Map<Id, Integer> accList02 = new Map<Id, Integer>();
+
+for (Account a : accList02Query) {
+    accList02.put(a.Id, a.Opportunities != null ? a.Opportunities.size() : 0);
+}
+
+Set<Id> matchingAccIds = new Set<Id>();
+
+for (Id accId : accList01.keySet()) {
+    if (accList02.containsKey(accId) && accList01.get(accId) == accList02.get(accId)) {
+        matchingAccIds.add(accId);
+    }
+}
+
+System.debug('Matching Account Ids ' + matchingAccIds);
+
+
+4. Prepare of map of opportunity owner name a key and the % of opportunities converted out of total leads created.
+
+List<AggregateResult> totalLeads = [SELECT Owner.Name ownerName, COUNT(Id) total FROM Lead GROUP BY Owner.Name];
+
+Map<String, Integer> ownerTotalLeadsMap = new Map<String, Integer>();
+for (AggregateResult ar : totalLeads) {
+    ownerTotalLeadsMap.put((String) ar.get('ownerName'), (Integer) ar.get('total'));
+}
+
+List<AggregateResult> convertedLeads = [SELECT Owner.Name ownerName, COUNT(Id) total FROM Lead WHERE IsConverted = true GROUP BY Owner.Name];
+
+Map<String, Integer> ownerConvertedLeadsMap = new Map<String, Integer>();
+for (AggregateResult ar : convertedLeads) {
+    ownerConvertedLeadsMap.put((String) ar.get('ownerName'), (Integer) ar.get('total'));
+}
+
+Map<String, Decimal> ownerConversionPercentMap = new Map<String, Decimal>();
+
+for (String ownerName : ownerTotalLeadsMap.keySet()) {
+    Integer total     = ownerTotalLeadsMap.get(ownerName);
+    Integer converted = ownerConvertedLeadsMap.containsKey(ownerName) ? ownerConvertedLeadsMap.get(ownerName) : 0;
+    Decimal percent   = ((Decimal) converted / total) * 100;
+    ownerConversionPercentMap.put(ownerName, percent.setScale(2));
+}
+
+System.debug('Owner - Conversion % ' + ownerConversionPercentMap);
+
+
+5. Create a map of account name as key and total contacts as value
+Map<String, Integer> accNameContactMap = new Map<String, Integer>();
+
+List<AggregateResult> results = [SELECT Account.Name accName, COUNT(Id) total FROM Contact GROUP BY Account.Name];
+
+for (AggregateResult ar : results) {
+    accNameContactMap.put((String) ar.get('accName'), (Integer) ar.get('total'));
+}
+
+System.debug('Account Name - Total Contacts: ' + accNameContactMap);
+
+
+6. Map of opportunity stage as key and total opportunities as value
+Map<String, Integer> stageOpptyMap = new Map<String, Integer>();
+
+List<AggregateResult> results2 = [SELECT StageName, COUNT(Id) total FROM Opportunity GROUP BY StageName];
+
+for (AggregateResult ar : results2) {
+    stageOpptyMap.put((String) ar.get('StageName'), (Integer) ar.get('total'));
+}
+
+System.debug('Stage - Total Opportunities: ' + stageOpptyMap);
+
+
+7. Map of account name as key and total open cases as value
+Map<String, Integer> accOpenCasesMap = new Map<String, Integer>();
+
+List<AggregateResult> results3 = [SELECT Account.Name accName, COUNT(Id) total FROM Case WHERE Status = 'Open' GROUP BY Account.Name];
+
+for (AggregateResult ar : results3) {
+    accOpenCasesMap.put((String) ar.get('accName'), (Integer) ar.get('total'));
+}
+
+System.debug('Account Name -> Total Open Cases: ' + accOpenCasesMap);
+
+
+Apex Trigger
+
+1. Write a trigger on account that updates all related contacts phone numbers when the account phone is changed.
+
+trigger AccountPhoneTrigger on Account (after update) {
+    AccountPhoneTriggerHandler.handleAfterUpdate(Trigger.new, Trigger.oldMap);
+}
+
+public class AccountPhoneTriggerHandler {
+    
+    public static void handleAfterUpdate(List<Account> newAccList, Map<Id, Account> oldAccMap) {
+        
+        Set<Id> changedPhoneAccIds = new Set<Id>();
+        
+        for (Account newAcc : newAccList) {
+            Account oldAcc = oldAccMap.get(newAcc.Id);
+            
+            if (newAcc.Phone != oldAcc.Phone) {
+                changedPhoneAccIds.add(newAcc.Id);
+            }
+        }
+        
+        if (changedPhoneAccIds.size() > 0) {
+            List<Contact> contactsToUpdate = [SELECT Id, Phone, AccountId 
+                                              FROM Contact 
+                                              WHERE AccountId IN :changedPhoneAccIds];
+            
+            Map<Id, String> accIdPhoneMap = new Map<Id, String>();
+            for (Account newAcc : newAccList) {
+                if (changedPhoneAccIds.contains(newAcc.Id)) {
+                    accIdPhoneMap.put(newAcc.Id, newAcc.Phone);
+                }
+            }
+            
+            for (Contact con : contactsToUpdate) {
+                con.Phone = accIdPhoneMap.get(con.AccountId);
+            }
+            
+            if (contactsToUpdate.size() > 0) {
+                update contactsToUpdate;
+            }
+        }
+    }
+}
+
+
+
+2. write a trigger on opportunity that updates all related cases to closed when opportunity stagename = closedwon
+
+trigger OpportunityClosedTrigger on Opportunity (after update) {
+    OpportunityClosedTriggerHandler.handleAfterUpdate(Trigger.new, Trigger.oldMap);
+}
+
+public class OpportunityClosedTriggerHandler {
+    
+    public static void handleAfterUpdate(List<Opportunity> newOppList, Map<Id, Opportunity> oldOppMap) {
+        
+        Set<Id> closedWonAccIds = new Set<Id>();
+        
+        for (Opportunity newOpp : newOppList) {
+            Opportunity oldOpp = oldOppMap.get(newOpp.Id);
+            
+            if (newOpp.StageName == 'Closed Won' && oldOpp.StageName != 'Closed Won') {
+                if (newOpp.AccountId != null) {
+                    closedWonAccIds.add(newOpp.AccountId);
+                }
+            }
+        }
+        
+        if (closedWonAccIds.size() > 0) {
+            List<Case> casesToUpdate = [SELECT Id, Status, AccountId 
+                                        FROM Case 
+                                        WHERE AccountId IN :closedWonAccIds
+                                        AND Status != 'Closed'];
+            
+            for (Case c : casesToUpdate) {
+                c.Status = 'Closed';
+            }
+            
+            if (casesToUpdate.size() > 0) {
+                update casesToUpdate;
+            }
+        }
+    }
+}
+
+
+
+3. Write a trigger on account that prevents deletion if the account has related opportunities.
+
+trigger AccountDeletionTrigger on Account (before delete) {
+    AccountDeletionTriggerHandler.handleBeforeDelete(Trigger.old, Trigger.oldMap);
+}
+
+public class AccountDeletionTriggerHandler {
+    
+    public static void handleBeforeDelete(List<Account> oldAccList, Map<Id, Account> oldAccMap) {
+        
+        Set<Id> accIds = oldAccMap.keySet();
+        
+        List<Opportunity> relatedOpps = [SELECT Id, Name, AccountId 
+                                         FROM Opportunity 
+                                         WHERE AccountId IN :accIds];
+        
+        Map<Id, Integer> accOppCountMap = new Map<Id, Integer>();
+        
+        for (Opportunity opp : relatedOpps) {
+            if (!accOppCountMap.containsKey(opp.AccountId)) {
+                accOppCountMap.put(opp.AccountId, 0);
+            }
+            accOppCountMap.put(opp.AccountId, accOppCountMap.get(opp.AccountId) + 1);
+        }
+        
+        for (Account acc : oldAccList) {
+            if (accOppCountMap.containsKey(acc.Id)) {
+                acc.addError('Cannot delete Account it has Opportunities related to it');
+            }
+        }
+    }
+}
+
+@isTest
+public class AccountDeletionTriggerTest {
+    
+    @isTest
+    static void testAccountDeletionWithOpportunities() {
+        
+        Account acc = new Account(Name = 'Test Account');
+        insert acc;
+        
+        Opportunity opp = new Opportunity(
+            Name       = 'Test Opp',
+            AccountId  = acc.Id,
+            StageName  = 'Prospecting',
+            CloseDate  = Date.today().addDays(30)
+        );
+        insert opp;
+        
+        try {
+            delete acc;
+            System.assert(false, 'Expected error was not thrown');
+        } catch (DmlException e) {
+            System.assert(e.getMessage().contains('Cannot delete Account'), 
+                         'Correct error message thrown');
+        }
+    }
+    
+    @isTest
+    static void testAccountDeletionWithoutOpportunities() {
+        
+        Account acc = new Account(Name = 'Test Account No Opps');
+        insert acc;
+        
+        try {
+            delete acc;
+            System.assert(true, 'Account deleted successfully');
+        } catch (DmlException e) {
+            System.assert(false, 'Unexpected error: ' + e.getMessage());
+        }
+    }
+}
+
+4. write a trigger on case that updates the parent accounts rating to 'hot' if more than 3 cases are created for that account
+
+trigger CaseAccountRatingTrigger on Case (after insert) {
+    CaseAccountRatingTriggerHandler.handleAfterInsert(Trigger.new);
+}
+
+public class CaseAccountRatingTriggerHandler {
+    
+    public static void handleAfterInsert(List<Case> newCaseList) {
+        
+        Set<Id> accIds = new Set<Id>();
+        
+        for (Case c : newCaseList) {
+            if (c.AccountId != null) {
+                accIds.add(c.AccountId);
+            }
+        }
+        
+        if (accIds.size() == 0) return;
+        
+        List<AggregateResult> caseCountResults = [SELECT AccountId, COUNT(Id) total 
+                                                   FROM Case 
+                                                   WHERE AccountId IN :accIds
+                                                   GROUP BY AccountId];
+        
+        Map<Id, Integer> accCaseCountMap = new Map<Id, Integer>();
+        
+        for (AggregateResult ar : caseCountResults) {
+            accCaseCountMap.put((Id) ar.get('AccountId'), (Integer) ar.get('total'));
+        }
+        
+        List<Account> accountsToUpdate = [SELECT Id, Name, Rating 
+                                           FROM Account 
+                                           WHERE Id IN :accIds];
+        
+        List<Account> accToUpdate = new List<Account>();
+        
+        for (Account acc : accountsToUpdate) {
+            if (accCaseCountMap.containsKey(acc.Id) && 
+                accCaseCountMap.get(acc.Id) > 3 && 
+                acc.Rating != 'Hot') {
+                    acc.Rating = 'Hot';
+                    accToUpdate.add(acc);
+            }
+        }
+        
+        if (accToUpdate.size() > 0) {
+            update accToUpdate;
+        }
+    }
+}
+
+
+@isTest
+public class CaseAccountRatingTriggerTest {
+    
+    @isTest
+    static void testRatingUpdatedToHot() {
+        
+        Account acc = new Account(Name = 'Test Account', Rating = 'Warm');
+        insert acc;
+        
+        List<Case> caseList = new List<Case>();
+        for (Integer i = 0; i < 4; i++) {
+            caseList.add(new Case(
+                Subject   = 'Test Case ' + i,
+                AccountId = acc.Id,
+                Status    = 'Open'
+            ));
+        }
+        
+        Test.startTest();
+        insert caseList;
+        Test.stopTest();
+        
+        Account updatedAcc = [SELECT Id, Rating FROM Account WHERE Id = :acc.Id];
+        System.assertEquals('Hot', updatedAcc.Rating, 'Account Rating should be Hot');
+    }
+    
+    @isTest
+    static void testRatingNotUpdated() {
+        
+        Account acc = new Account(Name = 'Test Account 2', Rating = 'Warm');
+        insert acc;
+        
+        List<Case> caseList = new List<Case>();
+        for (Integer i = 0; i < 2; i++) {
+            caseList.add(new Case(
+                Subject   = 'Test Case ' + i,
+                AccountId = acc.Id,
+                Status    = 'Open'
+            ));
+        }
+        
+        Test.startTest();
+        insert caseList;
+        Test.stopTest();
+        
+        Account updatedAcc = [SELECT Id, Rating FROM Account WHERE Id = :acc.Id];
+        System.assertNotEquals('Hot', updatedAcc.Rating, 'Account Rating should not be Hot');
+    }
+}
+
+
+Batch Apex
+
+1. Write a batch apex class that updates a custom field Email_Domain__c on contacts with the domain part of their Email address.
+
+global class ContactEmailDomainBatch implements Database.Batchable<sObject> {
+    
+    global Database.QueryLocator start(Database.BatchableContext bc) {
+        return Database.getQueryLocator([
+            SELECT Id, Email, Email_Domain__c 
+            FROM Contact 
+            WHERE Email != null
+        ]);
+    }
+    
+    global void execute(Database.BatchableContext bc, List<Contact> contactList) {
+        
+        List<Contact> contactsToUpdate = new List<Contact>();
+        
+        for (Contact con : contactList) {
+            if (con.Email != null && con.Email.contains('@')) {
+                
+                String domain = con.Email.substringAfter('@');
+                
+                if (con.Email_Domain__c != domain) {
+                    con.Email_Domain__c = domain;
+                    contactsToUpdate.add(con);
+                }
+            }
+        }
+        
+        if (contactsToUpdate.size() > 0) {
+            update contactsToUpdate;
+        }
+    }
+    
+    global void finish(Database.BatchableContext bc) {
+    }
+}
+
+2. write a batch apex class that updates account rating to 'Hot' if annual revenue > 1000000 and warm if between 500000 to 1000000
+
+global class AccountRatingBatch implements Database.Batchable<sObject> {
+    
+    global Database.QueryLocator start(Database.BatchableContext bc) {
+        return Database.getQueryLocator([
+            SELECT Id, Name, AnnualRevenue, Rating 
+            FROM Account 
+            WHERE AnnualRevenue != null
+        ]);
+    }
+    
+    global void execute(Database.BatchableContext bc, List<Account> accountList) {
+        List<Account> accountsToUpdate = new List<Account>();
+        
+        for (Account acc : accountList) {
+            if (acc.AnnualRevenue > 1000000 && acc.Rating != 'Hot') {
+                acc.Rating = 'Hot';
+                accountsToUpdate.add(acc);
+            } else if (acc.AnnualRevenue >= 500000 && acc.AnnualRevenue <= 1000000 && acc.Rating != 'Warm') {
+                acc.Rating = 'Warm';
+                accountsToUpdate.add(acc);
+            }
+        }
+        
+        if (accountsToUpdate.size() > 0) {
+            update accountsToUpdate;
+        }
+    }
+    
+    global void finish(Database.BatchableContext bc) {}
+}
+
+@isTest
+public class AccountRatingBatchTest {
+    
+    @isTest
+    static void testHotRating() {
+        
+        Account acc = new Account(
+            Name          = 'Hot Account',
+            AnnualRevenue = 2000000
+        );
+        insert acc;
+        
+        Test.startTest();
+        AccountRatingBatch batch = new AccountRatingBatch();
+        Database.executeBatch(batch, 200);
+        Test.stopTest();
+        
+        Account updatedAcc = [SELECT Id, Rating FROM Account WHERE Id = :acc.Id];
+        System.assertEquals('Hot', updatedAcc.Rating, 'Rating should be Hot');
+    }
+    
+    @isTest
+    static void testWarmRating() {
+        
+        Account acc = new Account(
+            Name          = 'Warm Account',
+            AnnualRevenue = 750000
+        );
+        insert acc;
+        
+        Test.startTest();
+        AccountRatingBatch batch = new AccountRatingBatch();
+        Database.executeBatch(batch, 200);
+        Test.stopTest();
+        
+        Account updatedAcc = [SELECT Id, Rating FROM Account WHERE Id = :acc.Id];
+        System.assertEquals('Warm', updatedAcc.Rating, 'Rating should be Warm');
+    }
+    
+    @isTest
+    static void testNoRatingUpdate() {
+        
+        Account acc = new Account(
+            Name          = 'Cold Account',
+            AnnualRevenue = 100000
+        );
+        insert acc;
+        
+        Test.startTest();
+        AccountRatingBatch batch = new AccountRatingBatch();
+        Database.executeBatch(batch, 200);
+        Test.stopTest();
+        
+        Account updatedAcc = [SELECT Id, Rating FROM Account WHERE Id = :acc.Id];
+        System.assertNotEquals('Hot',  updatedAcc.Rating, 'Rating should not be Hot');
+        System.assertNotEquals('Warm', updatedAcc.Rating, 'Rating should not be Warm');
+    }
+}
+
